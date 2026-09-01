@@ -1,24 +1,22 @@
-import { useRef, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { useApiTesterMutation } from "./mutations/apiTesterMutation";
 
 export function APITester() {
-  const responseInputRef = useRef<HTMLTextAreaElement>(null);
+  const [response, setResponse] = useState("");
 
-  const testEndpoint = async (e: FormEvent<HTMLFormElement>) => {
+  const { mutate } = useApiTesterMutation({
+    onSuccess: (data) => setResponse(JSON.stringify(data, null, 2)),
+    onError: (error) => setResponse(String(error)),
+  });
+
+  const testEndpoint = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    try {
-      const form = e.currentTarget;
-      const formData = new FormData(form);
-      const endpoint = formData.get("endpoint") as string;
-      const url = new URL(endpoint, location.href);
-      const method = formData.get("method") as string;
-      const res = await fetch(url, { method });
-
-      const data = await res.json();
-      responseInputRef.current!.value = JSON.stringify(data, null, 2);
-    } catch (error) {
-      responseInputRef.current!.value = String(error);
-    }
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    mutate({
+      endpoint: formData.get("endpoint") as string,
+      method: formData.get("method") as string,
+    });
   };
 
   return (
@@ -33,7 +31,7 @@ export function APITester() {
           Send
         </button>
       </form>
-      <textarea ref={responseInputRef} readOnly placeholder="Response will appear here..." className="response-area" />
+      <textarea readOnly value={response} placeholder="Response will appear here..." className="response-area" />
     </div>
   );
 }
