@@ -22,5 +22,7 @@ Presentation:
 4. If every ship/object was destroyed/crossed out, presentation is finished.
 
 Implementation details:
-1. Use tanstack query, but save and load data in local storage (or any frontend side storage).
-2. Try to keep code clean and neatly divided into subdirectories and components.
+1. We're using bunjs to run and bundle this project.
+2. All source code should be placed in `./src/`.
+3. Use tanstack query, but save and load data in local storage (or any frontend side storage).
+4. Try to keep code clean and neatly divided into subdirectories and components.
