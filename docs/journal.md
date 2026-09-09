@@ -131,83 +131,132 @@ General changes:
 
 ### Tasks
 
-### Tasks
+**Task 6a: Core Type Definition Updates**
 
-**Task 6: Extended Data Schema, Timestamps & App State I/O**
-
-* **Goal:** Update TypeScript interfaces and storage layer to persist metadata timestamps, presentation metrics, and app-wide JSON import/export functions.
-* **Files:** `src/types/index.ts`, `src/services/storageService.ts`, `src/hooks/useTemplates.ts`, `src/hooks/usePresentations.ts`
+* **Goal:** Expand TypeScript interfaces with dynamic dimensions and timestamp tracking.
+* **Files:** `src/types/index.ts`
 * **Details:**
-* Update `Template` type to include `createdAt: string` (ISO timestamp) and dynamic grid dimensions `width: number`, `height: number`.
-* Update `Presentation` type to include `startedAt: string`, `lastUpdatedAt: string`, and optional `finishedAt?: string`.
-* In `storageService.ts`, add methods `exportAppState(): string` (serializes templates and presentations into a JSON file) and `importAppState(jsonString: string): void` (parses and validates JSON before writing to `localStorage`).
-* Add helper queries to aggregate active vs. finished presentation counts per template ID.
+* Update `Template` to include `createdAt: string`, `width: number`, and `height: number`.
+* Update `Presentation` to include `startedAt: string`, `lastUpdatedAt: string`, and optional `finishedAt?: string`.
+
 
 ---
 
-**Task 7: Modal System Component**
+**Task 6b: Backup & Storage Service Extensions**
 
-* **Goal:** Create a custom modal system to eliminate all native `window.alert` and `window.confirm` calls.
+* **Goal:** Add JSON import/export functions and presentation metrics helpers to the storage layer.
+* **Files:** `src/services/storageService.ts`, `src/hooks/useTemplates.ts`, `src/hooks/usePresentations.ts`
+* **Details:**
+* Implement `exportAppState()` to serialize `localStorage` data into a JSON string.
+* Implement `importAppState(jsonString: string)` with schema validation before saving.
+* Create helper queries/hooks to count active vs. finished presentations per template ID.
+
+
+---
+
+**Task 7: Reusable Modal System & Context**
+
+* **Goal:** Build a custom modal component to eliminate browser `window.alert` and `window.confirm`.
 * **Files:** `src/components/common/Modal.tsx`, `src/context/ModalContext.tsx`
 * **Details:**
-* Build a centered modal overlay with a dimmed backdrop (`bg-black/50`).
-* Support click-outside backdrop dismiss (treated as "Cancel" action) and `Escape` key listeners.
-* Provide confirmation and alert dialog layouts accepting custom titles, body messages, confirm labels, and action callbacks.
-* Replace any remaining browser-native dialogs throughout the application with this component.
+* Create a centered modal overlay with a dimmed backdrop (`bg-black/50`).
+* Add click-outside backdrop dismiss (triggers cancel) and `Escape` key handler.
+* Provide standard confirmation and alert layouts accepting custom titles, body messages, and callbacks.
+* Replace remaining native browser dialogs across the app.
+
 
 ---
 
-**Task 8: Enhanced Interactive Grid with Headers & Hover Highlighting**
+**Task 8a: Header Helpers & Dynamic Grid Rendering**
 
-* **Goal:** Upgrade the base grid component to support dynamic dimensions (1x1 to 99x99), row/column headers, and multi-cell hover interactions.
+* **Goal:** Upgrade the base grid component to support dynamic dimensions (1x1 to 99x99) and row/column headers.
 * **Files:** `src/components/common/Grid.tsx`, `src/utils/gridUtils.ts`
 * **Details:**
-* In `gridUtils.ts`, create helper function to convert column index to letters (0 = A, 25 = Z, 26 = AA, etc.).
-* Add header row (A..Z..) and header column (1..99) around the main battlefield grid.
-* Track active cell hover state. When hovering a cell, highlight its corresponding column and row header labels.
-* When hovering over a cell belonging to a ship/object, apply hover visual styling to all cells sharing that same `shipId`.
-* Accept dynamic independent `rows` and `cols` props ranging from `1` to `99`.
+* Add `getColLabel(index: number)` in `gridUtils.ts` (0 = A, 25 = Z, 26 = AA).
+* Render outer header row (A, B, C...) and header column (1, 2, 3...).
+* Accept independent dynamic `rows` and `cols` props ranging from 1 to 99.
+
 
 ---
 
-**Task 9: Advanced Drag-Drawing Engine & Dynamic Template Controls**
+**Task 8b: Header & Object Hover Highlighting**
 
-* **Goal:** Implement responsive grid size controls, live path drawing with backtracking removal, valid adjacency rules, auto-color cycling, and save options in template builder.
+* **Goal:** Implement cell, header, and grouped object hover interaction states.
+* **Files:** `src/components/common/Grid.tsx`
+* **Details:**
+* Track currently hovered cell coordinate.
+* Highlight the active cell's column letter and row number headers on hover.
+* When hovering a cell belonging to an object/ship, apply a hover highlight style to all coordinate cells tied to that same `shipId`.
+
+
+---
+
+**Task 9a: Template Builder Header & Layout Updates**
+
+* **Goal:** Add real-time dimension inputs and standard Save button controls.
+* **Files:** `src/components/template/TemplateBuilder.tsx`
+* **Details:**
+* Add width and height inputs (1–99) to dynamically update the active template grid size before saving.
+* Add a dedicated `Save` button (saves and navigates back to Dashboard) alongside `Save & Start` and `Cancel`.
+
+
+---
+
+**Task 9b: Live Drag-Drawing & Backtracking Engine**
+
+* **Goal:** Implement live interactive path drawing with backtracking removal and adjacency rules.
 * **Files:** `src/components/template/TemplateBuilder.tsx`, `src/utils/drawingLogic.ts`
 * **Details:**
-* Add inputs allowing users to alter row/column counts (1–99) dynamically at any time prior to template save.
-* Add a `Save` button (saves template and returns to dashboard) alongside existing `Save & Start` and `Cancel` buttons.
-* Implement live drag-drawing logic in `drawingLogic.ts`:
-* Draw preview live as mouse drags across contiguous, unassigned cells.
-* If the cursor retraces steps over the current drawing sequence, remove those cells from the active path.
-* Prevent drawing over cells already occupied by saved objects. Touch/adjacent placement is allowed.
+* Render live object previews as the mouse drags across empty cells.
+* Retracting the mouse back over the current drawn path removes stepped-off cells.
+* Prevent drawing over occupied cells, but allow adjacent touching placements.
 
-
-* Automatically cycle the selected color to the next palette item upon object creation completion (looping back to index 0).
 
 ---
 
-**Task 10: Presentation UI Refresh & Granular Game Stats**
+**Task 9c: Color Palette Auto-Cycling**
 
-* **Goal:** Update the presentation summary bar to measure object-level stats, track misses, and display live lifecycle timestamps.
+* **Goal:** Automatically step through palette colors after every completed object creation.
+* **Files:** `src/components/template/TemplateBuilder.tsx`, `src/components/template/ColorPicker.tsx`
+* **Details:**
+* Upon finishing a drag-draw object placement, auto-select the next color in the palette sequence.
+* Loop back to the first color index when reaching the end of the palette list.
+
+
+---
+
+**Task 10: Presentation Statistics & Lifecycle Engine Update**
+
+* **Goal:** Refactor presentation tracking to object-level counts, misses, and updated timestamps.
 * **Files:** `src/components/presentation/PresentationView.tsx`, `src/utils/gameLogic.ts`
 * **Details:**
-* Update state tracking to record `misses` (clicks on empty cells).
-* Modify status bar text under template name to follow format: `X objects | Y hits | Z misses | W destroyed`.
-* Calculate `objects` as total count of distinct `Ship` entities and `destroyed` as count of fully hit `Ship` entities (rather than counting raw cells).
-* Update `lastUpdatedAt` timestamp on every move mutation, and set `finishedAt` when all objects are destroyed.
-* Hover highlights for column/row headers from Task 8 must also function during presentation play.
+* Track and display misses alongside hits.
+* Update summary string format: `X objects | Y hits | Z misses | W destroyed`.
+* Calculate `objects` and `destroyed` using distinct object/ship counts instead of cell totals.
+* Update `lastUpdatedAt` on every turn and record `finishedAt` upon game completion.
+
 
 ---
 
-**Task 11: Dashboard Overhaul & Backup Management**
+**Task 11a: Dashboard Date Formats & Presentation Metrics**
 
-* **Goal:** Enhance dashboard list items with locale-formatted dates, presentation counters, and full application JSON state backup/restore options.
-* **Files:** `src/components/dashboard/Dashboard.tsx`, `src/components/dashboard/ImportExportControls.tsx`
+* **Goal:** Display formatted local dates and live presentation status counters on Dashboard cards.
+* **Files:** `src/components/dashboard/Dashboard.tsx`
 * **Details:**
-* Display template `createdAt` dates and presentation `startedAt`, `lastUpdatedAt`, and `finishedAt` dates in user's local timezone/format.
-* Display live metrics on template cards showing total number of ongoing vs. finished presentations.
-* Build `ImportExportControls` component with "Export JSON" (triggers browser download of current state) and "Import JSON" (file input picker with validation error handling).
+* Format template `createdAt` and presentation `startedAt`, `lastUpdatedAt`, and `finishedAt` using local timezone/formatting (`toLocaleString`).
+* Display counts for ongoing vs. finished presentations directly on each template card.
+
+
+---
+
+**Task 11b: Import/Export UI Integration**
+
+* **Goal:** Add controls for backing up and restoring full application JSON state.
+* **Files:** `src/components/dashboard/ImportExportControls.tsx`, `src/components/dashboard/Dashboard.tsx`
+* **Details:**
+* Build export button triggering a browser `.json` download of current app state.
+* Build file import picker with validation and error toast/modal feedback.
+* Mount controls on the Dashboard view.
 
 
 ### Phase 2 Status
