@@ -4,7 +4,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { storageService } from "../services/storageService";
-import type { Template } from "../types";
+import type { AppState, Template } from "../types";
 
 export const queryKeys = {
   templates: () => ["templates"] as const,
@@ -68,4 +68,26 @@ export function useDeleteTemplate(options: DeleteTemplateOptions = {}) {
         onError: (error) => options.onError?.(error),
       }),
   };
+}
+
+export function useExportAppState() {
+  return {
+    export: (): string => storageService.exportAppState(),
+  };
+}
+
+export function useImportAppState(
+  options: { onSuccess?: () => void; onError?: (error: unknown) => void } = {}
+) {
+  const queryClient = useQueryClient();
+  const mutation = useMutation<AppState, unknown, string>({
+    mutationFn: async (jsonString) => storageService.importAppState(jsonString),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.templates() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.presentations() });
+      options.onSuccess?.();
+    },
+    onError: (error) => options.onError?.(error),
+  });
+  return mutation;
 }

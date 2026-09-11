@@ -1,9 +1,13 @@
 import { useTemplates, useDeleteTemplate } from "@/hooks/useTemplates";
 import {
-  usePresentations,
   useDeletePresentation,
+  usePresentations,
+  useTemplatePresentationCountsMap,
 } from "@/hooks/usePresentations";
+import { useModal } from "@/context/ModalContext";
 import type { Presentation, Template } from "@/types";
+import { formatDate } from "@/utils/dates";
+import { ImportExportControls } from "./ImportExportControls";
 
 export type DashboardActions =
   | { type: "start-presentation"; template: Template }
@@ -19,59 +23,83 @@ export function Dashboard({ onAction }: DashboardProps) {
   const { data: presentations = [] } = usePresentations();
   const deleteTemplate = useDeleteTemplate();
   const deletePresentation = useDeletePresentation();
+  const countsMap = useTemplatePresentationCountsMap();
+  const { confirm } = useModal();
 
   const activePresentations = presentations.filter((p) => !p.isFinished);
   const finishedPresentations = presentations.filter((p) => p.isFinished);
 
-  const sortedTemplates = [...templates]
-    .sort((a: Template, b: Template) => a.name.localeCompare(b.name));
-  const sortedActive = [...activePresentations].sort(
-    (a: Presentation, b: Presentation) => b.name.localeCompare(a.name)
+  const sortedTemplates = [...templates].sort((a: Template, b: Template) =>
+    a.name.localeCompare(b.name)
   );
+  const sortedActive = [...activePresentations].sort((a, b) =>
+    b.name.localeCompare(a.name)
+  );
+
+  const askDeleteTemplate = (t: Template) => {
+    void confirm({
+      title: "Delete template",
+      message: `Delete "${t.name}" and all its data?`,
+      confirmLabel: "Delete",
+    }).then((ok) => {
+      if (ok) deleteTemplate.mutate(t.id);
+    });
+  };
+
+  const askDeletePresentation = (p: Presentation) => {
+    void confirm({
+      title: "Delete presentation",
+      message: `Delete "${p.name}"?`,
+      confirmLabel: "Delete",
+    }).then((ok) => {
+      if (ok) deletePresentation.mutate(p.id);
+    });
+  };
 
   return (
     <div className="bf-dashboard">
       <section className="bf-dashboard__section">
         <h2>Templates</h2>
         {sortedTemplates.length === 0 ? (
-          <p className="bf-hint">
-            No templates yet. Create a new one to get started.
-          </p>
+          <p className="bf-hint">No templates yet. Create a new one to get started.</p>
         ) : (
           <ul className="bf-list">
-            {sortedTemplates.map((t) => (
-              <li key={t.id} className="bf-list__item">
-                <div className="bf-list__info">
-                  <span className="bf-list__name">{t.name}</span>
-                  <span className="bf-list__meta">
-                    {t.size}×{t.size} · {t.ships.length} ship
-                    {t.ships.length === 1 ? "" : "s"}
-                  </span>
-                </div>
-                <div className="bf-list__actions">
-                  <button
-                    type="button"
-                    className="bf-btn--primary"
-                    onClick={() =>
-                      onAction({ type: "start-presentation", template: t })
-                    }
-                  >
-                    Start presentation
-                  </button>
-                  <button
-                    type="button"
-                    className="bf-btn--ghost"
-                    onClick={() => {
-                      if (window.confirm("Delete this template?")) {
-                        deleteTemplate.mutate(t.id);
+            {sortedTemplates.map((t) => {
+              const counts = countsMap.get(t.id) ?? { ongoing: 0, finished: 0 };
+              return (
+                <li key={t.id} className="bf-list__item">
+                  <div className="bf-list__info">
+                    <span className="bf-list__name">{t.name}</span>
+                    <span className="bf-list__meta">
+                      {t.width}×{t.height} · {t.ships.length} object
+                      {t.ships.length === 1 ? "" : "s"} · Created{" "}
+                      {formatDate(t.createdAt)}
+                    </span>
+                    <span className="bf-list__meta">
+                      {counts.ongoing} ongoing · {counts.finished} finished
+                    </span>
+                  </div>
+                  <div className="bf-list__actions">
+                    <button
+                      type="button"
+                      className="bf-btn--primary"
+                      onClick={() =>
+                        onAction({ type: "start-presentation", template: t })
                       }
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
+                    >
+                      Start presentation
+                    </button>
+                    <button
+                      type="button"
+                      className="bf-btn--ghost"
+                      onClick={() => askDeleteTemplate(t)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
         <button
@@ -96,7 +124,8 @@ export function Dashboard({ onAction }: DashboardProps) {
                 <div className="bf-list__info">
                   <span className="bf-list__name">{p.name}</span>
                   <span className="bf-list__meta">
-                    {p.grid.filter((c) => c.state !== "hidden").length} shots
+                    Started {formatDate(p.startedAt)} · Updated{" "}
+                    {formatDate(p.lastUpdatedAt)}
                   </span>
                 </div>
                 <div className="bf-list__actions">
@@ -104,7 +133,10 @@ export function Dashboard({ onAction }: DashboardProps) {
                     type="button"
                     className="bf-btn--primary"
                     onClick={() =>
-                      onAction({ type: "resume-presentation", presentation: p })
+                      onAction({
+                        type: "resume-presentation",
+                        presentation: p,
+                      })
                     }
                   >
                     Resume
@@ -112,11 +144,7 @@ export function Dashboard({ onAction }: DashboardProps) {
                   <button
                     type="button"
                     className="bf-btn--ghost"
-                    onClick={() => {
-                      if (window.confirm("Delete this presentation?")) {
-                        deletePresentation.mutate(p.id);
-                      }
-                    }}
+                    onClick={() => askDeletePresentation(p)}
                   >
                     Delete
                   </button>
@@ -135,14 +163,20 @@ export function Dashboard({ onAction }: DashboardProps) {
               <li key={p.id} className="bf-list__item">
                 <div className="bf-list__info">
                   <span className="bf-list__name">{p.name}</span>
-                  <span className="bf-list__meta">finished</span>
+                  <span className="bf-list__meta">
+                    Started {formatDate(p.startedAt)} · Finished{" "}
+                    {formatDate(p.finishedAt)}
+                  </span>
                 </div>
                 <div className="bf-list__actions">
                   <button
                     type="button"
                     className="bf-btn--primary"
                     onClick={() =>
-                      onAction({ type: "resume-presentation", presentation: p })
+                      onAction({
+                        type: "resume-presentation",
+                        presentation: p,
+                      })
                     }
                   >
                     Review
@@ -150,11 +184,7 @@ export function Dashboard({ onAction }: DashboardProps) {
                   <button
                     type="button"
                     className="bf-btn--ghost"
-                    onClick={() => {
-                      if (window.confirm("Delete this presentation?")) {
-                        deletePresentation.mutate(p.id);
-                      }
-                    }}
+                    onClick={() => askDeletePresentation(p)}
                   >
                     Delete
                   </button>
@@ -164,6 +194,11 @@ export function Dashboard({ onAction }: DashboardProps) {
           </ul>
         </section>
       )}
+
+      <section className="bf-dashboard__section">
+        <h2>Backup</h2>
+        <ImportExportControls onImported={() => {}} />
+      </section>
     </div>
   );
 }

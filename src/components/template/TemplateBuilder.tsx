@@ -1,9 +1,13 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { DragAction } from "@/components/common/Grid";
-import { Grid } from "@/components/common/Grid";
+import { Grid, type GridCellContext } from "@/components/common/Grid";
 import type { Coordinate, Ship, Template } from "@/types";
-import { createId } from "@/services/storageService";
-import { useSaveTemplate } from "@/hooks/useTemplates";
+import { createId, storageService } from "@/services/storageService";
+import { queryKeys } from "@/hooks/useTemplates";
+import { useModal } from "@/context/ModalContext";
+import { extendPath, type StrokePath } from "@/utils/drawingLogic";
+import { sameCoord } from "@/utils/gridUtils";
 import { ColorPicker } from "./ColorPicker";
 
 const PALETTE: string[] = [
@@ -21,107 +25,187 @@ const PALETTE: string[] = [
 
 const DEFAULT_SIZE = 10;
 
+function clamp(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, Math.round(value)));
+}
+
 interface TemplateBuilderProps {
-  onDone: (template: Template) => void;
+  onDone: (result: { template: Template; start: boolean }) => void;
   onCancel: () => void;
 }
 
-function coordKey(c: Coordinate): string {
-  return `${c.x},${c.y}`;
-}
-
-function sameCoord(a: Coordinate, b: Coordinate): boolean {
-  return a.x === b.x && a.y === b.y;
-}
-
-function findShipAt(ships: Ship[], coord: Coordinate): Ship | undefined {
-  return ships.find((s) => s.coordinates.some((c) => sameCoord(c, coord)));
-}
-
 export function TemplateBuilder({ onDone, onCancel }: TemplateBuilderProps) {
-  const size = DEFAULT_SIZE;
   const [name, setName] = useState<string>("New template");
+  const [width, setWidth] = useState<number>(DEFAULT_SIZE);
+  const [height, setHeight] = useState<number>(DEFAULT_SIZE);
   const [ships, setShips] = useState<Ship[]>([]);
-  const [activeColor, setActiveColor] = useState<string>(
-    PALETTE[0] ?? "#e63946"
+  const [colorIndex, setColorIndex] = useState<number>(0);
+  const [preview, setPreview] = useState<StrokePath | null>(null);
+  const [previewColorIndex, setPreviewColorIndex] = useState<number>(0);
+  const activeColor = PALETTE[colorIndex] ?? PALETTE[0] ?? "#e63946";
+
+  const { alert } = useModal();
+  const queryClient = useQueryClient();
+
+  const occupiedCoords = useMemo(() => {
+    const set = new Set<string>();
+    for (const ship of ships) {
+      for (const coord of ship.coordinates) {
+        set.add(`${coord.x},${coord.y}`);
+      }
+    }
+    return set;
+  }, [ships]);
+
+  const isOccupied = useCallback(
+    (coord: Coordinate) => occupiedCoords.has(`${coord.x},${coord.y}`),
+    [occupiedCoords]
   );
-  const saveTemplate = useSaveTemplate({
-    onSuccess: (t) => onDone(t),
-  });
+
+  const getShipIdAt = useCallback(
+    (coord: Coordinate) => {
+      if (preview?.some((c) => sameCoord(c, coord))) {
+        return PALETTE[previewColorIndex] ?? "__preview__";
+      }
+      return ships.find((s) =>
+        s.coordinates.some((c) => sameCoord(c, coord))
+      )?.id;
+    },
+    [preview, previewColorIndex, ships]
+  );
+
+  const eraseAt = useCallback(
+    (coord: Coordinate) => {
+      setShips((prev) => {
+        const existing = prev.find((s) =>
+          s.coordinates.some((c) => sameCoord(c, coord))
+        );
+        if (!existing) return prev;
+        const remaining = existing.coordinates.filter(
+          (c) => !sameCoord(c, coord)
+        );
+        if (remaining.length === 0) {
+          return prev.filter((s) => s.id !== existing.id);
+        }
+        return prev.map((s) =>
+          s.id === existing.id ? { ...s, coordinates: remaining } : s
+        );
+      });
+      setPreview(null);
+    },
+    []
+  );
+
+  const handleStrokeStart = useCallback(
+    (coord: Coordinate, action: DragAction) => {
+      if (action === "remove") {
+        eraseAt(coord);
+        setPreview(null);
+        return;
+      }
+      const occupied = occupiedCoords.has(`${coord.x},${coord.y}`);
+      if (occupied) {
+        eraseAt(coord);
+        setPreview(null);
+        return;
+      }
+      setPreviewColorIndex(colorIndex);
+      setPreview([coord]);
+    },
+    [eraseAt, occupiedCoords, colorIndex]
+  );
+
+  const handleCellEnter = useCallback(
+    (coord: Coordinate, action: DragAction) => {
+      if (action === "remove") {
+        eraseAt(coord);
+        setPreview(null);
+        return;
+      }
+      setPreview((prevPath) => {
+        if (!prevPath) return prevPath;
+        if (prevPath.some((c) => sameCoord(c, coord))) return prevPath;
+        return extendPath(prevPath, coord, isOccupied);
+      });
+    },
+    [eraseAt, isOccupied]
+  );
+
+  const commitPreview = useCallback(() => {
+    setPreview((path) => {
+      if (path && path.length > 0) {
+        const ship: Ship = {
+          id: createId("ship"),
+          color: PALETTE[previewColorIndex] ?? "#e63946",
+          coordinates: path.slice(),
+        };
+        setShips((prev) => [...prev, ship]);
+        setColorIndex((idx) => (idx + 1) % PALETTE.length);
+      }
+      return null;
+    });
+  }, [previewColorIndex]);
 
   const handleCellClick = useCallback(
-    (coord: Coordinate) => {
-      const existing = findShipAt(ships, coord);
-      if (existing) {
-        const remaining = existing.coordinates.filter((c) => !sameCoord(c, coord));
-        setShips((prev) =>
-          prev
-            .map((ship) =>
-              ship.id === existing.id ? { ...ship, coordinates: remaining } : ship
-            )
-            .filter((s) => s.coordinates.length > 0)
-        );
-      } else {
-        setShips((prev) => [
-          ...prev,
-          {
-            id: createId("ship"),
-            color: activeColor,
-            coordinates: [coord],
-          },
-        ]);
+    (_coord: Coordinate, action: DragAction) => {
+      if (action === "remove") {
+        eraseAt(_coord);
+        return;
       }
+      // Single click: onStrokeStart already placed the cell in the preview.
+      commitPreview();
     },
-    [ships, activeColor]
+    [eraseAt, commitPreview]
   );
 
-  const handleCellDrag = useCallback(
-    (coordsIn: Coordinate[], action: DragAction) => {
-      if (action === "add") {
-        setShips((prev) => {
-          const copy: Ship[] = prev.map((s) => ({
-            ...s,
-            coordinates: [...s.coordinates],
-          }));
-          for (const coord of coordsIn) {
-            const existing = findShipAt(copy, coord);
-            if (existing) {
-              existing.coordinates.push(coord);
-            } else {
-              copy.push({
-                id: createId("ship"),
-                color: activeColor,
-                coordinates: [coord],
-              });
-            }
-          }
-          return copy;
+  const doSave = useCallback(
+    (start: boolean) => {
+      if (ships.length === 0) {
+        void alert({
+          title: "Nothing to save",
+          message: "Add at least one object before saving.",
         });
-      } else {
-        setShips((prev) =>
-          prev
-            .map((ship) => ({
-              ...ship,
-              coordinates: ship.coordinates.filter(
-                (c) => !coordsIn.some((cc) => sameCoord(cc, c))
-              ),
-            }))
-            .filter((s) => s.coordinates.length > 0)
-        );
+        return;
       }
+      const template: Template = {
+        id: createId("tpl"),
+        name: name.trim() || "Untitled template",
+        createdAt: new Date().toISOString(),
+        width,
+        height,
+        ships,
+      };
+      storageService.saveTemplate(template);
+      queryClient.invalidateQueries({ queryKey: queryKeys.templates() });
+      onDone({ template, start });
     },
-    [activeColor]
+    [ships, name, width, height, onDone, alert, queryClient]
   );
 
-  const handleSave = () => {
-    if (ships.length === 0) return;
-    saveTemplate.mutate({
-      id: createId("tpl"),
-      name: name.trim() || "Untitled template",
-      size,
-      ships,
-    });
-  };
+  const renderCell = useCallback(
+    (coord: Coordinate, ctx: GridCellContext) => {
+      const inPreview = preview?.some((c) => sameCoord(c, coord));
+      if (inPreview) {
+        const colorIdx = previewColorIndex;
+        const color = PALETTE[colorIdx] ?? "#e63946";
+        return (
+          <span
+            className="bf-cell__content"
+            style={{ background: color, opacity: 0.85 }}
+          />
+        );
+      }
+      const ship = ships.find((s) => s.coordinates.some((c) => sameCoord(c, coord)));
+      if (!ship) {
+        return ctx.isHovered ? (
+          <span className="bf-cell__content bf-cell__content--ghost" />
+        ) : null;
+      }
+      return <span className="bf-cell__content" style={{ background: ship.color }} />;
+    },
+    [preview, previewColorIndex, ships]
+  );
 
   return (
     <div className="bf-builder">
@@ -134,43 +218,65 @@ export function TemplateBuilder({ onDone, onCancel }: TemplateBuilderProps) {
             placeholder="Template name"
           />
         </label>
+        <label className="bf-field bf-field--small">
+          <span>Columns (1–99)</span>
+          <input
+            type="number"
+            min={1}
+            max={99}
+            value={width}
+            onChange={(e) =>
+              setWidth(clamp(parseInt(e.target.value, 10) || 1, 1, 99))
+            }
+          />
+        </label>
+        <label className="bf-field bf-field--small">
+          <span>Rows (1–99)</span>
+          <input
+            type="number"
+            min={1}
+            max={99}
+            value={height}
+            onChange={(e) =>
+              setHeight(clamp(parseInt(e.target.value, 10) || 1, 1, 99))
+            }
+          />
+        </label>
         <ColorPicker
           colors={PALETTE}
           value={activeColor}
-          onChange={setActiveColor}
+          onChange={(color) => {
+            const idx = PALETTE.indexOf(color);
+            if (idx >= 0) setColorIndex(idx);
+          }}
         />
         <div className="bf-builder__actions">
-          <button
-            type="button"
-            disabled={ships.length === 0 || saveTemplate.isPending}
-            onClick={handleSave}
-          >
+          <button type="button" className="bf-btn--primary" onClick={() => doSave(false)}>
+            Save
+          </button>
+          <button type="button" className="bf-btn--primary" onClick={() => doSave(true)}>
             Save &amp; start
           </button>
-          <button type="button" onClick={onCancel} className="bf-btn--ghost">
+          <button type="button" className="bf-btn--ghost" onClick={onCancel}>
             Cancel
           </button>
         </div>
         <p className="bf-hint">
-          Left-click or drag to paint ships. Right-click to erase. Switch
-          colors to start a new ship.
+          Left-click or drag to paint objects. Right-click to erase. Color
+          cycles automatically after each object.
         </p>
       </div>
 
       <div className="bf-builder__grid-wrap">
         <Grid
-          size={size}
+          rows={height}
+          cols={width}
+          renderCell={renderCell}
+          getShipIdAt={getShipIdAt}
           onCellClick={handleCellClick}
-          onCellDrag={handleCellDrag}
-          renderCell={(coord) => {
-            const ship = findShipAt(ships, coord);
-            return ship ? (
-              <span
-                className="bf-cell__content"
-                style={{ background: ship.color }}
-              />
-            ) : null;
-          }}
+          onStrokeStart={handleStrokeStart}
+          onCellEnter={handleCellEnter}
+          onStrokeEnd={commitPreview}
         />
       </div>
     </div>

@@ -261,4 +261,18 @@ General changes:
 
 ### Phase 2 Status
 
-Backlog
+Implementation started.
+
+* **Task 6a** (types: `createdAt`, `width`/`height`, `startedAt`/`lastUpdatedAt`/`finishedAt`, plus `AppState` and `TemplatePresentationCounts`) — done.
+* **Task 6b** (`exportAppState`, `importAppState` with validation, per-template presentation counts; hooks `useExportAppState`/`useImportAppState`/`useTemplatePresentationCountsMap`; legacy `size` migration) — done.
+* **Task 7** (reusable `Modal` + `ModalContext`/`useModal` with `confirm`/`alert`, Escape + click-outside dismiss; all `window.confirm`/`window.alert` removed) — done.
+* **Task 8a** (`Grid` now takes `rows`/`cols`, renders row/column headers, `gridUtils.getColLabel`) — done.
+* **Task 8b** (hover cell highlight, column/row header highlight, whole-object hover highlight via `getShipIdAt`) — done.
+* **Task 9a** (independent width/height inputs 1–99, dedicated `Save` button alongside `Save & start` and `Cancel`) — done.
+* **Task 9b** (live drag-drawing preview, backtracking removal, no-overlap + adjacency rules via `drawingLogic.extendPath`) — done.
+* **Task 9c** (auto-advance palette color after each committed object, looping back to first) — done.
+* **Task 10** (object-level `objects`/`destroyed` counts, added `misses`, `lastUpdatedAt`/`finishedAt` lifecycle; `getPresentationStats`) — done.
+* **Task 11a** (local-timezone date formatting on dashboard + presentation, ongoing/finished counts per template) — done.
+* **Task 11b** (`ImportExportControls` with JSON download + validated import picker and modal feedback, mounted on Dashboard) — done.
+
+Verification: `bun x tsc --noEmit` clean, `bun run build:frontend` succeeds, dev server boots.

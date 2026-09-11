@@ -12,20 +12,17 @@ export function coordKey(c: Coordinate): string {
   return `${c.x},${c.y}`;
 }
 
-export function createBlankGrid(size: number): PresentationCell[] {
+export function createBlankGrid(width: number, height: number): PresentationCell[] {
   const cells: PresentationCell[] = [];
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
       cells.push({ coordinate: { x, y }, state: "hidden" });
     }
   }
   return cells;
 }
 
-export function shipIsSunk(
-  ship: Ship,
-  hitCoordinates: Coordinate[]
-): boolean {
+export function shipIsSunk(ship: Ship, hitCoordinates: Coordinate[]): boolean {
   if (ship.coordinates.length === 0) return true;
   return ship.coordinates.every((cell) =>
     hitCoordinates.some((h) => sameCoord(h, cell))
@@ -71,19 +68,27 @@ export function getHitCoordinates(grid: PresentationCell[]): Coordinate[] {
   return grid.filter((c) => c.state === "hit").map((c) => c.coordinate);
 }
 
-export function getSunkShipIds(
-  ships: Ship[],
-  hitCoordinates: Coordinate[]
-): Set<string> {
-  const sunk = ships
-    .filter((s) => shipIsSunk(s, hitCoordinates))
-    .map((s) => s.id);
-  return new Set(sunk);
+export function countMisses(grid: PresentationCell[]): number {
+  return grid.reduce((acc, c) => acc + (c.state === "miss" ? 1 : 0), 0);
 }
 
-export function countShots(grid: PresentationCell[]): number {
-  return grid.reduce(
-    (acc, c) => acc + (c.state === "hidden" ? 0 : 1),
-    0
-  );
+export interface PresentationStats {
+  objects: number;
+  hits: number;
+  misses: number;
+  destroyed: number;
+}
+
+export function getPresentationStats(
+  ships: Ship[],
+  grid: PresentationCell[]
+): PresentationStats {
+  const hitCoords = getHitCoordinates(grid);
+  const destroyed = ships.filter((s) => shipIsSunk(s, hitCoords)).length;
+  return {
+    objects: ships.length,
+    hits: hitCoords.length,
+    misses: countMisses(grid),
+    destroyed,
+  };
 }

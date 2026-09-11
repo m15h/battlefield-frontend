@@ -9,6 +9,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App } from "./App";
+import { ModalProvider } from "./context/ModalContext";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -17,7 +18,9 @@ const elem = document.getElementById("root")!;
 const app = (
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <ModalProvider>
+        <App />
+      </ModalProvider>
     </QueryClientProvider>
   </StrictMode>
 );

@@ -12,7 +12,9 @@ export interface Ship {
 export interface Template {
   id: string;
   name: string;
-  size: number;
+  createdAt: string;
+  width: number;
+  height: number;
   ships: Ship[];
 }
 
@@ -27,6 +29,20 @@ export interface Presentation {
   id: string;
   templateId: string;
   name: string;
+  startedAt: string;
+  lastUpdatedAt: string;
+  finishedAt?: string;
   grid: PresentationCell[];
   isFinished: boolean;
+}
+
+export interface AppState {
+  version: number;
+  templates: Template[];
+  presentations: Presentation[];
+}
+
+export interface TemplatePresentationCounts {
+  ongoing: number;
+  finished: number;
 }

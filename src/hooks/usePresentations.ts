@@ -4,7 +4,11 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { storageService } from "../services/storageService";
-import type { Presentation, Template } from "../types";
+import type {
+  Presentation,
+  Template,
+  TemplatePresentationCounts,
+} from "../types";
 import { queryKeys } from "./useTemplates";
 
 export function usePresentations() {
@@ -12,6 +16,18 @@ export function usePresentations() {
     queryKey: queryKeys.presentations(),
     queryFn: () => storageService.getPresentations(),
   });
+}
+
+export function useTemplatePresentationCountsMap() {
+  const { data: presentations = [] } = usePresentations();
+  const map = new Map<string, TemplatePresentationCounts>();
+  for (const p of presentations) {
+    const entry = map.get(p.templateId) ?? { ongoing: 0, finished: 0 };
+    if (p.isFinished) entry.finished += 1;
+    else entry.ongoing += 1;
+    map.set(p.templateId, entry);
+  }
+  return map;
 }
 
 export function usePresentation(id: string | null) {

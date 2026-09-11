@@ -126,6 +126,10 @@ input:focus {
   min-width: 220px;
 }
 
+.bf-field--small {
+  min-width: 110px;
+}
+
 .bf-field > span {
   font-size: 0.85em;
   color: rgba(255, 255, 255, 0.55);
@@ -133,16 +137,39 @@ input:focus {
 
 /* Grid */
 
-.bf-grid {
+.bf-grid-board {
   display: grid;
   gap: 3px;
   background: rgba(255, 255, 255, 0.06);
-  padding: 6px;
+  padding: 8px;
   border-radius: 8px;
-  max-width: 560px;
-  aspect-ratio: 1 / 1;
   width: 100%;
   user-select: none;
+}
+
+.bf-grid__corner {
+  width: 1.8rem;
+}
+
+.bf-grid__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 80ms ease, background 80ms ease;
+}
+
+.bf-grid__header--row {
+  justify-content: flex-end;
+  padding-right: 0.35rem;
+}
+
+.bf-grid__header--active {
+  color: #00a8e8;
+  background: rgba(0, 150, 199, 0.18);
+  border-radius: 4px;
 }
 
 .bf-cell {
@@ -150,6 +177,21 @@ input:focus {
   background: #1a1a1a;
   border-radius: 4px;
   overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+}
+
+.bf-cell--hovered {
+  box-shadow: inset 0 0 0 2px rgba(0, 168, 232, 0.6);
+}
+
+.bf-cell--obj-hover {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+.bf-cell--obj-hover .bf-cell__content {
+  filter: brightness(1.18);
 }
 
 .bf-cell__content {
@@ -352,6 +394,70 @@ input:focus {
   gap: 0.75rem;
   text-align: center;
   padding: 1.5rem;
+}
+
+/* Modal */
+
+.bf-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.bf-modal {
+  width: 100%;
+  max-width: 420px;
+  background: #2b2b2b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.bf-modal__header {
+  padding: 1rem 1.25rem 0.25rem;
+}
+
+.bf-modal__title {
+  font-size: 1.1rem;
+}
+
+.bf-modal__body {
+  padding: 0.5rem 1.25rem 0.75rem;
+}
+
+.bf-modal__message {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.5;
+}
+
+.bf-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.25rem 1.25rem 1.1rem;
+}
+
+/* Presentation dates */
+
+.bf-presentation__dates {
+  margin: 0.15rem 0 0;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8em;
+}
+
+/* Import / Export */
+
+.bf-impexp {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 @media (prefers-reduced-motion) {

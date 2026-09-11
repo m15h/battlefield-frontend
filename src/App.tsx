@@ -62,25 +62,34 @@ function PresentationSessionInner({
   template: Template;
   onBack: () => void;
 }) {
-  const [grid, setGrid] = useState<PresentationCell[]>(() => [
+  const [grid, setGrid] = useState<PresentationCell[]>([
     ...presentation.grid,
   ]);
   const save = useSavePresentation();
 
   const alreadyShot = useCallback(
     (coord: Coordinate) =>
-      grid.some(
-        (c) => c.state !== "hidden" && sameCoord(c.coordinate, coord)
-      ),
+      grid.some((c) => c.state !== "hidden" && sameCoord(c.coordinate, coord)),
     [grid]
   );
 
   const handleShot = useCallback(
     (coord: Coordinate, hit: boolean) => {
+      if (presentation.isFinished) return;
       const next = applyShot(grid, coord, hit);
-      const finished = allShipsSunk(template.ships, getHitCoordinates(next));
+      const finished = allShipsSunk(
+        template.ships,
+        getHitCoordinates(next)
+      );
+      const now = new Date().toISOString();
       setGrid(next);
-      save.mutate({ ...presentation, grid: next, isFinished: finished });
+      save.mutate({
+        ...presentation,
+        grid: next,
+        isFinished: finished,
+        lastUpdatedAt: now,
+        finishedAt: finished ? now : presentation.finishedAt,
+      });
     },
     [grid, save, presentation, template.ships]
   );
@@ -89,6 +98,7 @@ function PresentationSessionInner({
     <PresentationView
       template={template}
       grid={grid}
+      presentation={presentation}
       alreadyShot={alreadyShot}
       onCellClick={handleShot}
       onBack={onBack}
@@ -103,16 +113,30 @@ export function App() {
   const startPresentation = useCallback(
     (template: Template) => {
       const id = createId("pres");
+      const now = new Date().toISOString();
       savePresentation.mutate({
         id,
         templateId: template.id,
         name: template.name,
-        grid: createBlankGrid(template.size),
+        startedAt: now,
+        lastUpdatedAt: now,
+        grid: createBlankGrid(template.width, template.height),
         isFinished: false,
       });
       setView({ kind: "presentation", id });
     },
     [savePresentation]
+  );
+
+  const handleTemplateDone = useCallback(
+    (result: { template: Template; start: boolean }) => {
+      if (result.start) {
+        startPresentation(result.template);
+      } else {
+        setView({ kind: "dashboard" });
+      }
+    },
+    [startPresentation]
   );
 
   const handleDashboardAction = useCallback(
@@ -151,10 +175,7 @@ export function App() {
         )}
 
         {view.kind === "createTemplate" && (
-          <TemplateBuilder
-            onDone={(template) => startPresentation(template)}
-            onCancel={goDashboard}
-          />
+          <TemplateBuilder onDone={handleTemplateDone} onCancel={goDashboard} />
         )}
 
         {view.kind === "presentation" && (
