@@ -139,7 +139,9 @@ input:focus {
 
 .bf-grid-board {
   display: grid;
-  gap: 3px;
+  grid-template-columns: minmax(1.6rem, auto) 1fr;
+  grid-template-rows: auto auto;
+  gap: 4px;
   background: rgba(255, 255, 255, 0.06);
   padding: 8px;
   border-radius: 8px;
@@ -148,10 +150,43 @@ input:focus {
 }
 
 .bf-grid__corner {
-  width: 1.8rem;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.bf-grid__colheaders {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  gap: 3px;
+}
+
+.bf-grid__rowheaders {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.bf-grid__body {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.bf-grid__board {
+  display: grid;
+  gap: 3px;
+  width: 100%;
 }
 
 .bf-grid__header {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
