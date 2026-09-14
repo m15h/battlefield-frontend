@@ -24,6 +24,7 @@ export interface GridProps {
   onStrokeEnd?: (action: DragAction) => void;
   disabled?: boolean;
   className?: string;
+  highlightShips?: boolean;
 }
 
 export function Grid({
@@ -37,6 +38,7 @@ export function Grid({
   onStrokeEnd,
   disabled,
   className,
+  highlightShips,
 }: GridProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [hovered, setHovered] = useState<Coordinate | null>(null);
@@ -130,6 +132,7 @@ export function Grid({
       const coord: Coordinate = { x, y };
       const cellShipId = getShipIdAt ? getShipIdAt(coord) : undefined;
       const inHoveredObject =
+        !!highlightShips &&
         !!hoveredShipId &&
         cellShipId !== undefined &&
         cellShipId === hoveredShipId;

@@ -292,6 +292,7 @@ export function TemplateBuilder({ onDone, onCancel }: TemplateBuilderProps) {
           onStrokeStart={handleStrokeStart}
           onCellEnter={handleCellEnter}
           onStrokeEnd={commitPreview}
+          highlightShips
         />
       </div>
     </div>
