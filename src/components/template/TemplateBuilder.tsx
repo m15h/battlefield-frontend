@@ -97,11 +97,21 @@ export function TemplateBuilder({ onDone, onCancel }: TemplateBuilderProps) {
     []
   );
 
+  const deleteShipAt = useCallback((coord: Coordinate) => {
+    setShips((prev) => {
+      const existing = prev.find((s) =>
+        s.coordinates.some((c) => sameCoord(c, coord))
+      );
+      if (!existing) return prev;
+      return prev.filter((s) => s.id !== existing.id);
+    });
+    setPreview(null);
+  }, []);
+
   const handleStrokeStart = useCallback(
     (coord: Coordinate, action: DragAction) => {
       if (action === "remove") {
-        eraseAt(coord);
-        setPreview(null);
+        deleteShipAt(coord);
         return;
       }
       const occupied = occupiedCoords.has(`${coord.x},${coord.y}`);
@@ -118,9 +128,9 @@ export function TemplateBuilder({ onDone, onCancel }: TemplateBuilderProps) {
 
   const handleCellEnter = useCallback(
     (coord: Coordinate, action: DragAction) => {
+      console.log('ships', ships);
       if (action === "remove") {
-        eraseAt(coord);
-        setPreview(null);
+        deleteShipAt(coord);
         return;
       }
       setPreview((prevPath) => {
@@ -129,34 +139,40 @@ export function TemplateBuilder({ onDone, onCancel }: TemplateBuilderProps) {
         return extendPath(prevPath, coord, isOccupied);
       });
     },
-    [eraseAt, isOccupied]
+    [deleteShipAt, isOccupied]
   );
 
   const commitPreview = useCallback(() => {
-    setPreview((path) => {
-      if (path && path.length > 0) {
-        const ship: Ship = {
-          id: createId("ship"),
-          color: PALETTE[previewColorIndex] ?? "#e63946",
-          coordinates: path.slice(),
-        };
-        setShips((prev) => [...prev, ship]);
-        setColorIndex((idx) => (idx + 1) % PALETTE.length);
-      }
-      return null;
-    });
-  }, [previewColorIndex]);
+    const path = preview;
+    if (!path || path.length === 0) {
+      setPreview(null);
+      return;
+    }
+    const ship: Ship = {
+      id: createId("ship"),
+      color: PALETTE[previewColorIndex] ?? "#e63946",
+      coordinates: path.slice(),
+    };
+    setShips((prev) => [
+      ...prev.filter(
+        (s) => !s.coordinates.every((c) => path.some((p) => sameCoord(c, p)))
+      ),
+      ship,
+    ]);
+    setColorIndex((idx) => (idx + 1) % PALETTE.length);
+    setPreview(null);
+  }, [preview, previewColorIndex]);
 
   const handleCellClick = useCallback(
     (_coord: Coordinate, action: DragAction) => {
       if (action === "remove") {
-        eraseAt(_coord);
+        deleteShipAt(_coord);
         return;
       }
       // Single click: onStrokeStart already placed the cell in the preview.
       commitPreview();
     },
-    [eraseAt, commitPreview]
+    [deleteShipAt, commitPreview]
   );
 
   const doSave = useCallback(
@@ -262,8 +278,8 @@ export function TemplateBuilder({ onDone, onCancel }: TemplateBuilderProps) {
           </button>
         </div>
         <p className="bf-hint">
-          Left-click or drag to paint objects. Right-click to erase. Color
-          cycles automatically after each object.
+          Left-click or drag to paint objects. Right-click an object to
+          delete it. Color cycles automatically after each object.
         </p>
       </div>
 

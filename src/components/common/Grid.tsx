@@ -149,7 +149,8 @@ export function Grid({
         <div
           key={coordKey(coord)}
           className={cellClasses}
-          onMouseDown={(e) => {
+           onMouseDown={(e) => {
+            if (e.button !== 0) return;
             e.preventDefault();
             handleMouseDown(coord, "add");
           }}
