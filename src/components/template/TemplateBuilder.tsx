@@ -128,7 +128,6 @@ export function TemplateBuilder({ onDone, onCancel }: TemplateBuilderProps) {
 
   const handleCellEnter = useCallback(
     (coord: Coordinate, action: DragAction) => {
-      console.log('ships', ships);
       if (action === "remove") {
         deleteShipAt(coord);
         return;
