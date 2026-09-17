@@ -276,3 +276,25 @@ Implementation started.
 * **Task 11b** (`ImportExportControls` with JSON download + validated import picker and modal feedback, mounted on Dashboard) — done.
 
 Verification: `bun x tsc --noEmit` clean, `bun run build:frontend` succeeds, dev server boots.
+
+## Phase 3 - drawing fix
+
+### action item
+
+When drawing object, if cursor is going back it's footsteps, it should remove from object the cells it stepped off of.
+
+### tasks
+
+**Task 12: Drag Path Backtracking & Step-Removal Engine**
+
+* **Goal:** Refactor the drag-drawing algorithm so retracing mouse steps over an in-progress ship draft pops or truncates the path cells back to the cursor position.
+* **Files:** `src/utils/drawingLogic.ts`, `src/components/template/TemplateBuilder.tsx`, `src/components/common/Grid.tsx`
+* **Details:**
+* Represent the active drawing path as an ordered coordinate array (`path: Coordinate[]`), where `path[path.length - 1]` is the active tip.
+* On `onMouseEnter` over cell `C` during an active drag:
+* **Immediate Backtrack:** If `C` equals the second-to-last cell (`path[path.length - 2]`), remove the last element (`path.pop()`) so the path shrinks to `C`.
+* **Multi-Step Truncation:** If `C` exists at index `i` in `path` where `i < path.length - 2`, slice the path array to index `i + 1` (removing all cells drawn after `C`).
+* **Forward Extension:** If `C` is not in `path`, validate adjacency against `path[path.length - 1]` and check for overlaps with existing ships. If valid, push `C` onto `path`.
+
+
+* Update live preview render state immediately on `path` modification before mouse release (`onMouseUp`).
