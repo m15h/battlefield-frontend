@@ -298,3 +298,11 @@ When drawing object, if cursor is going back it's footsteps, it should remove fr
 
 
 * Update live preview render state immediately on `path` modification before mouse release (`onMouseUp`).
+
+### Phase 3 Status
+
+Done on 2026-09-18.
+
+* **Task 12** (drag path backtracking & step-removal) — the `extendPath` engine in `src/utils/drawingLogic.ts` already implemented immediate backtracking, multi-step truncation, and forward extension per spec; the missing piece was `TemplateBuilder.handleCellEnter`, whose early `return` for "cell already in path" short-circuited before `extendPath` was reached, silently disabling backtracking. Removed the guard so `extendPath` handles in-path re-entry. Live preview re-renders on every `onMouseEnter` (state update) before `onMouseUp` commits the object.
+
+Verification: `bun x tsc --noEmit` clean, `bun run build:frontend` succeeds, dev server boots, engine behavior verified by direct test of all spec cases (immediate backtrack, multi-step truncation, tip no-op, forward extension, non-adjacent rejected, occupied rejected).

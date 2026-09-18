@@ -134,7 +134,6 @@ export function TemplateBuilder({ onDone, onCancel }: TemplateBuilderProps) {
       }
       setPreview((prevPath) => {
         if (!prevPath) return prevPath;
-        if (prevPath.some((c) => sameCoord(c, coord))) return prevPath;
         return extendPath(prevPath, coord, isOccupied);
       });
     },
