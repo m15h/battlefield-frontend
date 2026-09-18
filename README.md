@@ -1,3 +1,5 @@
+Warning: written by AI with human supervision.
+
 # Battlefield
 
 A single-page Battleship-style game built with React and [TanStack Query](https://tanstack.com/query). Design battle templates by painting ships onto a grid, then run interactive presentations that track hits, misses, sunk ships, and completion — all persisted to `localStorage` so you can resume a session after a reload.
