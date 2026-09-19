@@ -6,7 +6,7 @@ A single-page Battleship-style game built with React and [TanStack Query](https:
 
 ## Features
 
-- **Template builder** — name a template, pick a color per ship, and paint ships cell-by-cell (with drag-painting) on a 10×10 grid.
+- **Template builder** — name a template, pick a color per ship, and paint ships cell-by-cell (with drag-painting) on a 10×10 grid (configurable).
 - **Presentation player** — a fog-of-war grid where each click resolves to a hit or miss, sunk ships get crossed out, and a completion overlay appears once every ship is destroyed.
 - **Dashboard** — list saved templates, start a new presentation from any of them, and resume in-progress sessions.
 - **Offline persistence** — templates and presentation state live in `localStorage` via TanStack Query mutations, so progress survives a page reload.
