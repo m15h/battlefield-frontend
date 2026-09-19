@@ -306,3 +306,36 @@ Done on 2026-09-18.
 * **Task 12** (drag path backtracking & step-removal) — the `extendPath` engine in `src/utils/drawingLogic.ts` already implemented immediate backtracking, multi-step truncation, and forward extension per spec; the missing piece was `TemplateBuilder.handleCellEnter`, whose early `return` for "cell already in path" short-circuited before `extendPath` was reached, silently disabling backtracking. Removed the guard so `extendPath` handles in-path re-entry. Live preview re-renders on every `onMouseEnter` (state update) before `onMouseUp` commits the object.
 
 Verification: `bun x tsc --noEmit` clean, `bun run build:frontend` succeeds, dev server boots, engine behavior verified by direct test of all spec cases (immediate backtrack, multi-step truncation, tip no-op, forward extension, non-adjacent rejected, occupied rejected).
+
+## Phase 4 - polishing
+
+### action items
+
+- currently during template creation and presentation, buttons and other control elements and battle field is underneath. It actually requires to scroll the page to see the whole battlefield. We need to be able to use these screens without scrolling. I suggest to have battlefield on the left and control elements on the right. Where possible, control elements should be one under another.
+- during presentation, it should be possible to toggle view between current (full) view and minimal view where only battlefield is visible. It's intended for streamers to display only battlefield as part of their streamed screen.
+
+### tasks
+
+**Task 13: Viewport-Fit & Split-Pane Layout Refactor**
+
+* **Goal:** Eliminate full-page scrolling in `TemplateBuilder` and `PresentationView` by refactoring layouts into a dual-pane view (grid on the left, vertically stacked controls on the right) constrained to 100% viewport height.
+* **Files:** `src/components/template/TemplateBuilder.tsx`, `src/components/presentation/PresentationView.tsx`, `src/components/common/Grid.tsx`
+* **Details:**
+* Convert root view containers to fixed full-height flex layouts (`h-screen overflow-hidden`) to remove standard window scrollbars.
+* Re-architect layouts into a two-column structure: place the interactive grid/battlefield in the primary left container and stack controls/inputs vertically in a dedicated right sidebar.
+* Wrap `Grid.tsx` in a container that dynamically constrains max height and width (`max-h-[calc(100vh-theme(spacing.16))] aspect-square`) so grids up to 99x99 scale down smoothly to fit within the viewport without clipping or scrolling.
+
+---
+
+**Task 14: Presentation Minimal View Mode (Streamer Overlay)**
+
+* **Goal:** Implement a view mode toggle in `PresentationView` that isolates the battlefield grid and removes all UI chrome for clean display on video streams.
+* **Files:** `src/components/presentation/PresentationView.tsx`, `src/components/presentation/StreamerControls.tsx`
+* **Details:**
+* Add state `isMinimalView: boolean` toggled via a dedicated UI button (e.g., "Minimal View" / "Streamer Mode") and keyboard shortcut (e.g., `M` key).
+* When Minimal View is enabled, hide top headers, global navigation, statistical summary panels, and sidebar control buttons, rendering only the battlefield grid centered in the screen.
+* Add a subtle floating overlay or keyboard shortcut handler (`Esc` or `M`) to allow returning to full view mode.
+
+### Phase 4 status
+
+Status: Backlog
