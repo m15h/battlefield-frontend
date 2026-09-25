@@ -318,23 +318,25 @@ Verification: `bun x tsc --noEmit` clean, `bun run build:frontend` succeeds, dev
 
 **Task 13: Viewport-Fit & Split-Pane Layout Refactor**
 
-* **Goal:** Eliminate full-page scrolling in `TemplateBuilder` and `PresentationView` by refactoring layouts into a dual-pane view (grid on the left, vertically stacked controls on the right) constrained to 100% viewport height.
+* **Goal:** Eliminate page and inner scrolling in `TemplateBuilder` and `PresentationView` by refactoring layouts into a dual-pane view (grid on the left, vertically stacked controls on the right) sized dynamically via CSS `max()`.
 * **Files:** `src/components/template/TemplateBuilder.tsx`, `src/components/presentation/PresentationView.tsx`, `src/components/common/Grid.tsx`
 * **Details:**
-* Convert root view containers to fixed full-height flex layouts (`h-screen overflow-hidden`) to remove standard window scrollbars.
-* Re-architect layouts into a two-column structure: place the interactive grid/battlefield in the primary left container and stack controls/inputs vertically in a dedicated right sidebar.
-* Wrap `Grid.tsx` in a container that dynamically constrains max height and width (`max-h-[calc(100vh-theme(spacing.16))] aspect-square`) so grids up to 99x99 scale down smoothly to fit within the viewport without clipping or scrolling.
+* Set `h-screen` (or `h-dvh`) and `overflow-hidden` on main view containers to strictly avoid window or container scrollbars.
+* Structure views as a split two-column flex container: left pane contains the interactive grid; right sidebar contains controls stacked vertically one below another.
+* Compute grid cell dimensions dynamically using standard CSS `max()` (e.g., using `max()` rules bounded by viewport height/width constraints) so grids from 1x1 to 99x99 scale down smoothly to fit inside the left container without requiring page or inner scrollbars.
 
 ---
 
 **Task 14: Presentation Minimal View Mode (Streamer Overlay)**
 
-* **Goal:** Implement a view mode toggle in `PresentationView` that isolates the battlefield grid and removes all UI chrome for clean display on video streams.
-* **Files:** `src/components/presentation/PresentationView.tsx`, `src/components/presentation/StreamerControls.tsx`
+* **Goal:** Implement a Streamer/Minimal View toggle in `PresentationView` that isolates the battlefield and provides corner and keyboard exit controls.
+* **Files:** `src/components/presentation/PresentationView.tsx`, `src/components/common/Grid.tsx`
 * **Details:**
-* Add state `isMinimalView: boolean` toggled via a dedicated UI button (e.g., "Minimal View" / "Streamer Mode") and keyboard shortcut (e.g., `M` key).
-* When Minimal View is enabled, hide top headers, global navigation, statistical summary panels, and sidebar control buttons, rendering only the battlefield grid centered in the screen.
-* Add a subtle floating overlay or keyboard shortcut handler (`Esc` or `M`) to allow returning to full view mode.
+* Maintain `isMinimalView: boolean` state toggled by a button in the right sidebar or via keyboard key (`M`).
+* In Minimal View, hide headers, sidebar controls, statistics counters, and global navigation, centering only the battlefield grid on screen.
+* Implement dual exit mechanism:
+* **Keyboard:** Pressing `Esc` or `M` toggles minimal view off.
+* **Corner Button:** Render a tiny exit button inside the grid's top-left origin header cell (the empty intersection cell where the column header row and row header column meet).
 
 ### Phase 4 status
 
