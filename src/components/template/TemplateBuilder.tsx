@@ -282,17 +282,19 @@ export function TemplateBuilder({ onDone, onCancel }: TemplateBuilderProps) {
       </div>
 
       <div className="bf-builder__grid-wrap">
-        <Grid
-          rows={height}
-          cols={width}
-          renderCell={renderCell}
-          getShipIdAt={getShipIdAt}
-          onCellClick={handleCellClick}
-          onStrokeStart={handleStrokeStart}
-          onCellEnter={handleCellEnter}
-          onStrokeEnd={commitPreview}
-          highlightShips
-        />
+        <div className="bf-builder__grid-wrap-inner">
+          <Grid
+            rows={height}
+            cols={width}
+            renderCell={renderCell}
+            getShipIdAt={getShipIdAt}
+            onCellClick={handleCellClick}
+            onStrokeStart={handleStrokeStart}
+            onCellEnter={handleCellEnter}
+            onStrokeEnd={commitPreview}
+            highlightShips
+          />
+        </div>
       </div>
     </div>
   );

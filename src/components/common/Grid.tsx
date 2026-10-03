@@ -6,6 +6,9 @@ export type DragAction = "add" | "remove";
 
 const CELL_PX = 40;
 const BOARD_GAP_PX = 3;
+const HEADER_SIZE = 26;
+const BOARD_GAP = 4;
+const BOARD_PADDING = 8;
 
 export interface GridCellContext {
   isDragging: boolean;
@@ -169,18 +172,39 @@ export function Grid({
     }
   }
 
+  const extraPx = HEADER_SIZE + BOARD_GAP + BOARD_PADDING * 2;
+  const colSize = `(100cqw - (${cols} - 1) * ${BOARD_GAP_PX}px - ${extraPx}px - 360px - 1.25rem) / ${cols}`;
+  const rowSize = `(100cqh - (${rows} - 1) * ${BOARD_GAP_PX}px - ${extraPx}px) / ${rows}`;
+  const cellSize = `min(${colSize}, ${rowSize})`;
+
   return (
     <div className={`bf-grid-board ${className ?? ""}`}>
       <div className="bf-grid__corner" />
-      <div className="bf-grid__colheaders">{colHeaders}</div>
-      <div className="bf-grid__rowheaders">{rowHeaders}</div>
+      <div
+        className="bf-grid__colheaders"
+        style={{
+          gridTemplateColumns: `repeat(${cols}, ${cellSize})`,
+        }}
+      >{colHeaders}</div>
+      <div
+        className="bf-grid__rowheaders"
+        style={{
+          gridTemplateRows: `repeat(${rows}, ${cellSize})`,
+        }}
+      >{rowHeaders}</div>
       <div className="bf-grid__body">
         <div
           className="bf-grid__board"
           style={{
-            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-            gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+            //gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+            //gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
             //height: `${rows * CELL_PX + (rows - 1) * BOARD_GAP_PX}px`,
+            // '--cell-size': `min(
+            //   (100cqw - (${cols} - 1) * ${BOARD_GAP_PX}px - ${extraPx}px) / ${cols},
+            //   (100cqh - (${rows} - 1) * ${BOARD_GAP_PX}px - ${extraPx}px) / ${rows}
+            // )`,
+            gridTemplateColumns: `repeat(${cols}, ${cellSize})`,
+            gridTemplateRows: `repeat(${rows}, ${cellSize})`,
           }}
           onMouseUp={finish}
           onMouseLeave={() => {
