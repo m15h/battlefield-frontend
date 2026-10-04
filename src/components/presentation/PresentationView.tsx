@@ -81,16 +81,20 @@ export function PresentationView({
         <div>
           <h2 className="bf-presentation__title">{template.name}</h2>
           <p className="bf-presentation__meta">
-            {stats.objects} object{stats.objects === 1 ? "" : "s"} ·{" "}
+            {/* {stats.objects} object{stats.objects === 1 ? "" : "s"} ·{" "} */}
             {stats.hits} hit{stats.hits === 1 ? "" : "s"} ·{" "}
             {stats.misses} miss{stats.misses === 1 ? "" : "es"} ·{" "}
             {stats.destroyed} destroyed
           </p>
           <p className="bf-presentation__dates">
-            Started {formatDate(presentation.startedAt)} · Updated{" "}
-            {formatDate(presentation.lastUpdatedAt)}
+            Started {formatDate(presentation.startedAt)}
+          </p>
+          <p className="bf-presentation__dates">
+            Updated {formatDate(presentation.lastUpdatedAt)}
+          </p>
+          <p className="bf-presentation__dates">
             {presentation.finishedAt
-              ? ` · Finished ${formatDate(presentation.finishedAt)}`
+              ? `Finished ${formatDate(presentation.finishedAt)}`
               : ""}
           </p>
         </div>
