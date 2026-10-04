@@ -405,9 +405,10 @@ input:focus {
 
 .bf-presentation {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 1rem;
-  max-width: 720px;
+  flex-grow: 1;
+  container-type: size;
 }
 
 .bf-presentation__header {
@@ -415,6 +416,9 @@ input:focus {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  max-width: 360px;
+  place-content: flex-start;
+  align-items: flex-start;
 }
 
 .bf-presentation__title {
@@ -430,7 +434,20 @@ input:focus {
 .bf-presentation__grid-wrap {
   position: relative;
   display: flex;
+  flex-direction: column;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: calc(100cqw - 360px - 1.25rem);
+  align-items: flex-start;
+}
+
+.bf-presentation__grid-wrap-inner {
+  display: flex;
   justify-content: center;
+  flex-direction: row;
+  flex-shrink: 1;
+  min-width: 0;
+  min-height: 0;
 }
 
 .bf-presentation__overlay {

@@ -94,26 +94,25 @@ export function PresentationView({
               : ""}
           </p>
         </div>
-        <button type="button" className="bf-btn--ghost" onClick={onBack}>
-          Back to dashboard
-        </button>
       </div>
 
       <div className="bf-presentation__grid-wrap">
-        <Grid
-          rows={template.height}
-          cols={template.width}
-          renderCell={renderCell}
-          getShipIdAt={getShipIdAt}
-          disabled={finished}
-          onCellClick={(c, action) => {
-            if (action !== "add") return;
-            if (!finished && !alreadyShot(c)) {
-              const hit = isHitAt(ships, c);
-              onCellClick(c, hit);
-            }
-          }}
-        />
+        <div className="bf-presentation__grid-wrap-inner">
+          <Grid
+            rows={template.height}
+            cols={template.width}
+            renderCell={renderCell}
+            getShipIdAt={getShipIdAt}
+            disabled={finished}
+            onCellClick={(c, action) => {
+              if (action !== "add") return;
+              if (!finished && !alreadyShot(c)) {
+                const hit = isHitAt(ships, c);
+                onCellClick(c, hit);
+              }
+            }}
+          />
+        </div>
 
         {finished && (
           <div className="bf-presentation__overlay">
