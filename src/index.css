@@ -96,7 +96,7 @@ input:focus {
   justify-content: space-between;
   padding: 1rem 2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  max-height: 8vh;
+  max-height: 6vh;
 }
 
 .bf-header h1 {
@@ -113,6 +113,7 @@ input:focus {
   padding: 2rem;
   align-items: stretch;
   max-height: 92vh;
+  justify-content: center;
 }
 
 .bf-hint {
@@ -291,6 +292,24 @@ input:focus {
 .bf-dashboard__section > h2 {
   font-size: 1.1rem;
   margin-bottom: 0.75rem;
+}
+
+.bf-dashboard__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bf-dashboard__new {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  font-size: 1.6rem;
+  line-height: 1;
+  padding: 0;
+  border-radius: 6px;
 }
 
 .bf-list {

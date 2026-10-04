@@ -59,7 +59,17 @@ export function Dashboard({ onAction }: DashboardProps) {
   return (
     <div className="bf-dashboard">
       <section className="bf-dashboard__section">
-        <h2>Templates</h2>
+        <div className="bf-dashboard__head">
+          <h2>Templates</h2>
+          <button
+            type="button"
+            className="bf-dashboard__new"
+            title="Create new template"
+            onClick={() => onAction({ type: "create-template" })}
+          >
+            +
+          </button>
+        </div>
         {sortedTemplates.length === 0 ? (
           <p className="bf-hint">No templates yet. Create a new one to get started.</p>
         ) : (
@@ -102,17 +112,10 @@ export function Dashboard({ onAction }: DashboardProps) {
             })}
           </ul>
         )}
-        <button
-          type="button"
-          className="bf-btn--primary"
-          onClick={() => onAction({ type: "create-template" })}
-        >
-          + Create new template
-        </button>
       </section>
 
       <section className="bf-dashboard__section">
-        <h2>Active presentations</h2>
+        <div className="bf-dashboard__head"><h2>Active presentations</h2></div>
         {sortedActive.length === 0 ? (
           <p className="bf-hint">
             No active presentations. Start one from a template above.
@@ -157,7 +160,7 @@ export function Dashboard({ onAction }: DashboardProps) {
 
       {finishedPresentations.length > 0 && (
         <section className="bf-dashboard__section">
-          <h2>Finished presentations</h2>
+          <div className="bf-dashboard__head"><h2>Finished presentations</h2></div>
           <ul className="bf-list">
             {finishedPresentations.map((p) => (
               <li key={p.id} className="bf-list__item">
@@ -196,7 +199,7 @@ export function Dashboard({ onAction }: DashboardProps) {
       )}
 
       <section className="bf-dashboard__section">
-        <h2>Backup</h2>
+        <div className="bf-dashboard__head"><h2>Backup</h2></div>
         <ImportExportControls onImported={() => {}} />
       </section>
     </div>
