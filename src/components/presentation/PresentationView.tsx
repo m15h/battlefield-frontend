@@ -81,39 +81,42 @@ export function PresentationView({
         <div>
           <h2 className="bf-presentation__title">{template.name}</h2>
           <p className="bf-presentation__meta">
-            {stats.objects} object{stats.objects === 1 ? "" : "s"} ·{" "}
+            {/* {stats.objects} object{stats.objects === 1 ? "" : "s"} ·{" "} */}
             {stats.hits} hit{stats.hits === 1 ? "" : "s"} ·{" "}
             {stats.misses} miss{stats.misses === 1 ? "" : "es"} ·{" "}
             {stats.destroyed} destroyed
           </p>
           <p className="bf-presentation__dates">
-            Started {formatDate(presentation.startedAt)} · Updated{" "}
-            {formatDate(presentation.lastUpdatedAt)}
+            Started {formatDate(presentation.startedAt)}
+          </p>
+          <p className="bf-presentation__dates">
+            Updated {formatDate(presentation.lastUpdatedAt)}
+          </p>
+          <p className="bf-presentation__dates">
             {presentation.finishedAt
-              ? ` · Finished ${formatDate(presentation.finishedAt)}`
+              ? `Finished ${formatDate(presentation.finishedAt)}`
               : ""}
           </p>
         </div>
-        <button type="button" className="bf-btn--ghost" onClick={onBack}>
-          Back to dashboard
-        </button>
       </div>
 
       <div className="bf-presentation__grid-wrap">
-        <Grid
-          rows={template.height}
-          cols={template.width}
-          renderCell={renderCell}
-          getShipIdAt={getShipIdAt}
-          disabled={finished}
-          onCellClick={(c, action) => {
-            if (action !== "add") return;
-            if (!finished && !alreadyShot(c)) {
-              const hit = isHitAt(ships, c);
-              onCellClick(c, hit);
-            }
-          }}
-        />
+        <div className="bf-presentation__grid-wrap-inner">
+          <Grid
+            rows={template.height}
+            cols={template.width}
+            renderCell={renderCell}
+            getShipIdAt={getShipIdAt}
+            disabled={finished}
+            onCellClick={(c, action) => {
+              if (action !== "add") return;
+              if (!finished && !alreadyShot(c)) {
+                const hit = isHitAt(ships, c);
+                onCellClick(c, hit);
+              }
+            }}
+          />
+        </div>
 
         {finished && (
           <div className="bf-presentation__overlay">
