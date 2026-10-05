@@ -30,10 +30,10 @@ export function Dashboard({ onAction }: DashboardProps) {
   const finishedPresentations = presentations.filter((p) => p.isFinished);
 
   const sortedTemplates = [...templates].sort((a: Template, b: Template) =>
-    a.name.localeCompare(b.name)
+    b.createdAt.localeCompare(a.createdAt)
   );
   const sortedActive = [...activePresentations].sort((a, b) =>
-    b.name.localeCompare(a.name)
+    b.startedAt.localeCompare(a.startedAt)
   );
 
   const askDeleteTemplate = (t: Template) => {

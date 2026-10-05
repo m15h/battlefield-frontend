@@ -372,6 +372,7 @@ input:focus {
   justify-content: flex-start;
   gap: 1rem;
   max-width: 360px;
+  min-width: 240px;
 }
 
 .bf-builder__grid-wrap {
@@ -437,6 +438,7 @@ input:focus {
   justify-content: space-between;
   gap: 1rem;
   max-width: 360px;
+  min-width: 240px;
   place-content: flex-start;
   align-items: flex-start;
 }
