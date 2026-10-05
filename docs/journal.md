@@ -318,12 +318,10 @@ Verification: `bun x tsc --noEmit` clean, `bun run build:frontend` succeeds, dev
 
 **Task 13: Viewport-Fit & Split-Pane Layout Refactor**
 
-* **Goal:** Eliminate page and inner scrolling in `TemplateBuilder` and `PresentationView` by refactoring layouts into a dual-pane view (grid on the left, vertically stacked controls on the right) sized dynamically via CSS `max()`.
-* **Files:** `src/components/template/TemplateBuilder.tsx`, `src/components/presentation/PresentationView.tsx`, `src/components/common/Grid.tsx`
+* **Goal:** Eliminate page and inner scrolling in `TemplateBuilder` and `PresentationView` by refactoring layouts into a dual-pane view (grid on the right, vertically stacked controls on the left) sized dynamically via CSS.
+* **Files:** `src/components/template/TemplateBuilder.tsx`, `src/components/presentation/PresentationView.tsx`, `src/components/common/Grid.tsx`, `src/index.css`
 * **Details:**
-* Set `h-screen` (or `h-dvh`) and `overflow-hidden` on main view containers to strictly avoid window or container scrollbars.
-* Structure views as a split two-column flex container: left pane contains the interactive grid; right sidebar contains controls stacked vertically one below another.
-* Compute grid cell dimensions dynamically using standard CSS `max()` (e.g., using `max()` rules bounded by viewport height/width constraints) so grids from 1x1 to 99x99 scale down smoothly to fit inside the left container without requiring page or inner scrollbars.
+* use `container-type: size` and calculate sizes against it.
 
 ---
 
